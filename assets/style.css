@@ -1,0 +1,1692 @@
+/* Basic shell */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #DAE3E3;
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* Menu Toggle Button */
+.menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: none;
+    background: #008184;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 129, 132, 0.3);
+    transition: all 0.3s ease;
+}
+
+.menu-toggle:hover {
+    background: #006669;
+    transform: scale(1.05);
+}
+
+.menu-toggle svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    z-index: 999;
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+    width: 40px;
+    height: 40px;
+}
+
+.sidebar-title {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.nav-item.active {
+    background: rgba(0, 129, 132, 0.2);
+    color: #00d4d8;
+    border-left-color: #00d4d8;
+}
+
+.nav-item svg {
+    opacity: 0.8;
+}
+
+.nav-item.active svg {
+    opacity: 1;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.version {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+}
+
+/* Main Wrapper */
+.main-wrapper {
+    padding: 20px;
+    padding-left: 88px;
+    transition: padding-left 0.3s ease;
+    min-height: 100vh;
+}
+
+.main-wrapper.sidebar-open {
+    padding-left: 88px;
+}
+
+/* IO Layout - Side by side containers */
+.io-layout {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.board-container {
+    flex: 1 1 300px;
+    min-width: 300px;
+    max-width: 100%;
+}
+
+.board-container .board {
+    width: 100%;
+    max-width: 100%;
+}
+
+.servo-container {
+    flex: 1 1 320px;
+    min-width: 320px;
+    max-width: 100%;
+}
+
+/* Fix container styles for flex layout */
+.container {
+    height: auto;
+    margin-bottom: 0;
+}
+
+/* Desktop responsive design */
+@media (min-width: 992px) {
+    .io-layout {
+        flex-wrap: nowrap;
+    }
+    
+    .board-container {
+        flex: 0 0 calc(35% - 12px);
+    }
+    
+    .servo-container {
+        flex: 0 0 calc(55% - 12px);
+    }
+}
+
+/* Tablet responsive design */
+@media (min-width: 769px) and (max-width: 991px) {
+    .board-container {
+        flex: 0 0 100%;
+        margin-bottom: 24px;
+    }
+    
+    .servo-container {
+        flex: 0 0 100%;
+    }
+}
+
+/* Increase font sizes for better readability */
+.board-container {
+    font-size: 16px;
+}
+
+.servo-container h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.servo-container .subtitle {
+    font-size: 16px;
+    margin-bottom: 24px;
+}
+
+.servo-card .servo-name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.servo-card .servo-angle-display {
+    font-size: 16px;
+    padding: 8px 16px;
+}
+
+/* Quick Actions at the top */
+.servo-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.servo-container .quick-actions {
+    order: -1;
+    margin-bottom: 24px;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.servo-container .quick-actions h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.servo-container .action-btn {
+    font-size: 14px;
+    padding: 12px 16px;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 12px 0;
+}
+
+.arduino-text {
+    color: #008184;
+    font-family: "Roboto Mono", monospace;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    font-style: normal;
+    line-height: 170%;
+    letter-spacing: 2.4px;
+}
+
+.arduino-logo {
+    height: 32px;
+    width: auto;
+}
+
+/* Content Sections */
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Container */
+.container {
+    height: 75%;
+    border-radius: 16px;
+    background: #FFF;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+h1, h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin: 0 0 8px 0;
+}
+
+.subtitle {
+    color: #6c757d;
+    text-align: center;
+    margin: 0 0 20px 0;
+    font-size: 14px;
+}
+
+#boardContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.stage { display:grid; place-items:center; padding:16px; }
+
+.board {
+  position: relative;
+  width: min(92vw, 920px);
+  margin: 0 auto;
+}
+.board img {
+  position: relative;
+  display:block; width:100%; height:auto;
+  user-select:none; -webkit-user-drag:none;
+  z-index: 1;
+}
+
+.toggle-wrap{
+  position:absolute;
+  width:calc(47px * var(--img-scale,1));
+  height:calc(12px * var(--img-scale,1));
+  display:grid; place-items:center;
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transform: translate(-50%,-50%);
+  z-index: 2;
+}
+
+.switch-input{
+  position:absolute; inline-size:1px; block-size:1px;
+  margin:-1px; padding:0; border:0; clip:rect(0 0 0 0); overflow:hidden;
+}
+
+.switch-ios{
+  position:relative;
+  width:calc(22px * var(--img-scale,1));
+  height:calc(12px * var(--img-scale,1));
+  background:#c9d4d4; border-radius:999px;
+  box-shadow:inset 0 0 0 calc(1px * var(--img-scale,1)) #0000000f;
+  transition:background .18s ease, box-shadow .18s ease;
+}
+.switch-ios::after{
+  content:"";
+  position:absolute;
+  width:calc(10px * var(--img-scale,1)); height:calc(10px * var(--img-scale,1));
+  top:calc(1px * var(--img-scale,1)); left:calc(1px * var(--img-scale,1));
+  background:#fff; border-radius:50%; box-shadow:0 1px 2px #0003;
+  transition:transform .18s ease;
+}
+.switch-input:checked + .switch-ios{ background:#008184; }
+.switch-input:checked + .switch-ios::after{ transform:translateX(calc(10px * var(--img-scale,1))); }
+.toggle-wrap:has(.switch-input:focus-visible) .switch-ios{
+  outline:calc(2px * var(--img-scale,1)) solid #34C75955;
+  outline-offset:calc(2px * var(--img-scale,1));
+}
+.switch-ios:hover{ box-shadow:inset 0 0 0 calc(1px * var(--img-scale,1)) #0000001a; }
+
+/* Servo Control Panel Styles */
+.servo-container {
+    min-width: 320px;
+}
+
+.servo-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.servo-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.servo-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.servo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.servo-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.servo-pin {
+    background: #008184;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: "Roboto Mono", monospace;
+}
+
+.servo-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.servo-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #008184 0%, #00bcd4 50%, #ff9800 100%);
+    outline: none;
+    cursor: pointer;
+}
+
+.servo-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #008184;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.servo-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.servo-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #008184;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.servo-angle-display {
+    min-width: 60px;
+    text-align: center;
+    background: #008184;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: "Roboto Mono", monospace;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.servo-preset-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.preset-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #e0e0e0;
+    color: #333;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    font-weight: 500;
+}
+
+.preset-btn:hover {
+    background: #d0d0d0;
+    transform: translateY(-1px);
+}
+
+.preset-btn:active {
+    transform: translateY(0);
+}
+
+.preset-btn.left {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.preset-btn.left:hover {
+    background: #bbdefb;
+}
+
+.preset-btn.center {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.preset-btn.center:hover {
+    background: #c8e6c9;
+}
+
+.preset-btn.right {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.preset-btn.right:hover {
+    background: #ffe0b2;
+}
+
+/* Quick Actions Section */
+.quick-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.quick-actions h3 {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0 0 12px 0;
+    text-align: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #008184;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    background: #006669;
+    transform: translateY(-1px);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+.action-btn.reset {
+    background: #dc3545;
+}
+
+.action-btn.reset:hover {
+    background: #c82333;
+}
+
+/* Piano Section Styles */
+.piano-section {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.piano-section h2 {
+    color: #008184;
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.piano-section .subtitle {
+    margin-bottom: 24px;
+}
+
+/* Instrument Selector */
+.instrument-selector {
+    margin-bottom: 24px;
+}
+
+.instrument-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.instrument-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.instrument-btn:hover {
+    border-color: #008184;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 129, 132, 0.2);
+}
+
+.instrument-btn.active {
+    border-color: #008184;
+    background: linear-gradient(135deg, #008184 0%, #00bcd4 100%);
+    color: white;
+}
+
+.instrument-btn.active .instrument-name {
+    color: white;
+}
+
+.instrument-icon {
+    font-size: 28px;
+}
+
+.instrument-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+}
+
+.instrument-key {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #999;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.instrument-btn.active .instrument-key {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Piano Container */
+.piano-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(180deg, #2c2c2c 0%, #1a1a1a 100%);
+    border-radius: 16px;
+    box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2);
+    margin-bottom: 24px;
+}
+
+.piano-section-title {
+    color: #00d4d8;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    margin-top: 15px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.piano-section-title:first-child {
+    margin-top: 0;
+}
+
+.piano {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    height: 180px;
+    margin-bottom: 10px;
+}
+
+.piano-key {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    user-select: none;
+}
+
+.piano-key.white {
+    width: 55px;
+    height: 200px;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+    border: 1px solid #cccccc;
+    border-radius: 0 0 8px 8px;
+    margin-right: 2px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.piano-key.white:last-child {
+    margin-right: 0;
+}
+
+.piano-key.white:hover {
+    background: linear-gradient(180deg, #f0f0f0 0%, #e8e8e8 100%);
+}
+
+.piano-key.white.active {
+    background: linear-gradient(180deg, #00d4d8 0%, #008184 100%);
+    transform: translateY(3px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.piano-key.white.active .key-label,
+.piano-key.white.active .note-label {
+    color: white;
+}
+
+.piano-key.black {
+    width: 36px;
+    height: 120px;
+    background: linear-gradient(180deg, #333333 0%, #1a1a1a 100%);
+    border-radius: 0 0 6px 6px;
+    margin-left: -18px;
+    margin-right: -18px;
+    z-index: 1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.piano-key.black:hover {
+    background: linear-gradient(180deg, #444444 0%, #2a2a2a 100%);
+}
+
+.piano-key.black.active {
+    background: linear-gradient(180deg, #006669 0%, #004d52 100%);
+    transform: translateY(3px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.key-label {
+    font-size: 11px;
+    color: #999999;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.note-label {
+    font-size: 10px;
+    color: #666666;
+    margin-top: auto;
+    margin-bottom: 12px;
+}
+
+.piano-key.white .key-label {
+    color: #008184;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.piano-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.volume-control label {
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.volume-control input[type="range"] {
+    width: 120px;
+    height: 8px;
+    -webkit-appearance: none;
+    background: linear-gradient(90deg, #444444, #008184);
+    border-radius: 4px;
+    outline: none;
+}
+
+.volume-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #008184;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.volume-control input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #008184;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+#volumeValue {
+    font-family: "Roboto Mono", monospace;
+    color: #00d4d8;
+    font-weight: 600;
+    min-width: 45px;
+}
+
+.control-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background: #dc3545;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* OTTO Control Section Styles */
+.otto-control-section {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.otto-control-section h2 {
+    color: #008184;
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.otto-control-section .subtitle {
+    margin-bottom: 32px;
+}
+
+/* Control Groups */
+.control-group {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #e0e0e0;
+}
+
+.control-group h3 {
+    font-size: 16px;
+    color: #2c3e50;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #008184;
+}
+
+/* Movement Pad */
+.movement-pad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.movement-row {
+    display: flex;
+    gap: 12px;
+}
+
+.move-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 28px;
+    border: 2px solid #008184;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #008184;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.move-btn:hover {
+    background: #008184;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 129, 132, 0.3);
+}
+
+.move-btn:active {
+    transform: translateY(0);
+}
+
+.move-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
+.move-btn span {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Speed Control */
+.speed-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.speed-control label {
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 50px;
+}
+
+.speed-control input[type="range"] {
+    width: 200px;
+    height: 8px;
+    -webkit-appearance: none;
+    background: linear-gradient(90deg, #008184, #00bcd4);
+    border-radius: 4px;
+    outline: none;
+}
+
+.speed-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #008184;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+#speedValue {
+    font-family: "Roboto Mono", monospace;
+    color: #008184;
+    font-weight: 600;
+    min-width: 60px;
+}
+
+/* Action Grid */
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 12px;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    border-color: #008184;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 129, 132, 0.2);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+.action-btn.active {
+    border-color: #008184;
+    background: #008184;
+}
+
+.action-btn.active .btn-icon,
+.action-btn.active .btn-label {
+    color: white;
+}
+
+.btn-icon {
+    font-size: 28px;
+}
+
+.btn-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+}
+
+.action-btn.stop {
+    border-color: #dc3545;
+}
+
+.action-btn.stop:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Music Sync Panel */
+.music-sync-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.music-select {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.music-select label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.music-select select {
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 14px;
+    color: #2c3e50;
+    cursor: pointer;
+    min-width: 200px;
+    transition: border-color 0.2s ease;
+}
+
+.music-select select:hover {
+    border-color: #008184;
+}
+
+.music-select select:focus {
+    outline: none;
+    border-color: #008184;
+}
+
+.music-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #008184 0%, #00bcd4 100%);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.music-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 129, 132, 0.3);
+}
+
+.music-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.music-btn.secondary {
+    background: #6c757d;
+}
+
+.music-btn.secondary:hover:not(:disabled) {
+    background: #5a6268;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Now Playing */
+.now-playing {
+    text-align: center;
+    padding: 16px;
+    background: linear-gradient(135deg, #008184 0%, #00bcd4 100%);
+    border-radius: 12px;
+    color: white;
+}
+
+.now-playing-label {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.now-playing-title {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+/* Preset Grid */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+}
+
+.preset-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.preset-btn:hover {
+    border-color: #008184;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 129, 132, 0.2);
+}
+
+.preset-icon {
+    font-size: 36px;
+}
+
+.preset-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .arduino-text {
+        font-size: 14px;
+    }
+
+    .arduino-logo {
+        height: 20px;
+        width: auto;
+    }
+
+    .main-wrapper {
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 80px;
+    }
+
+    .main-wrapper.sidebar-open {
+        padding-left: 20px;
+    }
+
+    .sidebar {
+        width: 100%;
+        left: -100%;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .io-layout {
+        gap: 16px;
+    }
+
+    .board-container {
+        flex: 0 0 100%;
+        min-width: unset;
+        margin-bottom: 16px;
+    }
+
+    .servo-container {
+        flex: 0 0 100%;
+        min-width: unset;
+        max-width: 100%;
+    }
+
+    .sensor-container {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .container {
+        padding: 16px;
+    }
+
+    .servo-container h2 {
+        font-size: 20px;
+    }
+
+    .servo-container .subtitle {
+        font-size: 14px;
+    }
+
+    .servo-card .servo-name {
+        font-size: 16px;
+    }
+
+    .servo-card .servo-angle-display {
+        font-size: 14px;
+        padding: 6px 12px;
+    }
+
+    .quick-actions h3 {
+        font-size: 14px;
+    }
+
+    .action-buttons {
+        gap: 6px;
+    }
+
+    .action-btn {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    #ultrasonic-distance {
+        font-size: 36px;
+    }
+
+    /* Piano responsive - Portrait mode: vertical layout */
+    .piano-container {
+        padding: 20px 10px;
+    }
+
+    .piano-wrapper {
+        overflow-y: auto;
+        max-height: 70vh;
+    }
+
+    .piano {
+        flex-direction: column;
+        height: auto;
+        min-height: 600px;
+    }
+
+    .piano-key.white {
+        width: 100%;
+        height: 50px;
+        margin-right: 0;
+        margin-bottom: 4px;
+        border-radius: 8px;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0 16px;
+    }
+
+    .piano-key.black {
+        width: 60%;
+        height: 40px;
+        margin-left: auto;
+        margin-right: 0;
+        margin-bottom: 4px;
+        border-radius: 8px;
+        position: relative;
+        flex-direction: row;
+        justify-content: flex-end;
+        padding: 0 16px;
+    }
+
+    .piano-key.white .key-label,
+    .piano-key.black .key-label {
+        position: static;
+        margin-bottom: 0;
+        font-size: 16px;
+    }
+
+    .piano-key.white .note-label {
+        position: static;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .instrument-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .instrument-btn {
+        padding: 12px 8px;
+    }
+
+    .instrument-icon {
+        font-size: 24px;
+    }
+
+    .instrument-name {
+        font-size: 10px;
+    }
+
+    /* OTTO Control responsive */
+    .control-group {
+        padding: 16px;
+    }
+
+    .move-btn {
+        padding: 16px 20px;
+        min-width: 80px;
+    }
+
+    .action-grid {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    }
+
+    .btn-icon {
+        font-size: 24px;
+    }
+
+    .preset-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+
+    .music-sync-panel {
+        flex-direction: column;
+    }
+
+    .music-select select {
+        min-width: 100%;
+    }
+
+    .music-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Music Player responsive */
+    .music-player-container {
+        padding: 16px;
+    }
+
+    .cd-player {
+        width: 160px;
+        height: 160px;
+    }
+
+    .cd-disc {
+        width: 140px;
+        height: 140px;
+    }
+
+    .cd-label {
+        width: 50px;
+        height: 50px;
+    }
+
+    .song-title {
+        font-size: 16px;
+    }
+
+    .song-artist {
+        font-size: 12px;
+    }
+
+    .music-controls {
+        gap: 20px;
+    }
+
+    .control-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .control-btn.play-btn {
+        width: 60px;
+        height: 60px;
+    }
+
+    .music-select-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .music-select-row select {
+        min-width: 100%;
+    }
+
+    .dance-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==================== Music Player Styles ==================== */
+
+.music-player-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    gap: 20px;
+}
+
+/* CD Player Visualizer */
+.cd-player {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cd-disc {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #e0e0e0 0%, #f5f5f5 50%, #d0d0d0 100%);
+    box-shadow: 
+        0 4px 15px rgba(0,0,0,0.2),
+        inset 0 2px 10px rgba(255,255,255,0.8),
+        inset 0 -2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: none;
+}
+
+.cd-disc.playing {
+    animation: cdRotate 3s linear infinite;
+}
+
+@keyframes cdRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.cd-disc::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: repeating-radial-gradient(
+        circle at center,
+        transparent 0px,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+    );
+}
+
+.cd-label {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #ff6b6b 0%, #ee5a5a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.cd-text {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.cd-shadow {
+    position: absolute;
+    bottom: -10px;
+    width: 140px;
+    height: 20px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+/* Song Info */
+.song-info {
+    text-align: center;
+    width: 100%;
+}
+
+.song-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-artist {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Progress Bar */
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 0 8px;
+}
+
+.time-current,
+.time-total {
+    font-size: 12px;
+    color: #666;
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+    overflow: visible;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b 0%, #ee5a5a 100%);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.progress-handle {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: white;
+    border: 2px solid #ff6b6b;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.progress-bar:hover .progress-handle {
+    opacity: 1;
+}
+
+.progress-handle.dragging {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Music Controls */
+.music-controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.control-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s;
+}
+
+.control-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.control-btn.play-btn {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(145deg, #ff6b6b 0%, #ee5a5a 100%);
+    color: white;
+}
+
+.control-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Song Select Row */
+.music-select-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+}
+
+.music-select-row select {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.dance-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.dance-toggle:hover {
+    border-color: #ff6b6b;
+}
+
+.dance-toggle.active {
+    background: linear-gradient(145deg, #ff6b6b 0%, #ee5a5a 100%);
+    border-color: #ff6b6b;
+    color: white;
+}
+
+.toggle-icon {
+    font-size: 20px;
+}
+
+.toggle-text {
+    font-size: 14px;
+    font-weight: 500;
+}

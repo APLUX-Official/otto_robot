@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="./img/toggle.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNO Q OTTO Robot Control</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- Menu Toggle Button -->
+  <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+    <svg viewBox="0 0 24 24" width="24" height="24">
+      <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+    </svg>
+  </button>
+
+  <!-- Left Sidebar Navigation -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="./img/logo.svg" alt="Arduino" class="sidebar-logo">
+      <span class="sidebar-title">UNO Q Control</span>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item active" data-section="io-control">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M22 9V7h-2V5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2v-2h-2V9h2zm-4 10H4V5h14v14zM6 13h5v4H6zm6-6h4v3h-4zM6 7h5v5H6zm6 4h4v6h-4z"/>
+        </svg>
+        <span>IO Control</span>
+      </li>  
+      <li class="nav-item" data-section="piano">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM6 19h4v-6H6v6zm6-8h-4V5h4v6zm6 8h4v-6h-4v6z"/>
+        </svg>
+        <span>Virtual Piano</span>
+      </li>
+      <li class="nav-item" data-section="otto-control">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+        </svg>
+        <span>OTTO Control</span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <span class="version">v1.0.0</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-wrapper" id="mainWrapper">
+    <header class="header">
+      <h1 class="arduino-text">UNO Q OTTO Robot Control</h1>
+      <img class="arduino-logo" src="./img/logo.svg" alt="Arduino Logo">
+    </header>
+
+    <!-- IO Control Section -->
+    <section class="content-section active" id="section-io-control">
+      <div class="main-content io-layout">
+        <div class="container board-container">
+          <div id="boardContainer">
+            <div class="board">
+              <img id="boardImage" src="./img/arduino-toggle.svg" alt="Arduino board">
+            </div>
+          </div>
+        </div>
+        <div class="container servo-container">
+          <h2>Servo Control Panel</h2>
+          <p class="subtitle">SG90 Servos for OTTO Robot</p>
+          <div class="servo-grid" id="servoGrid">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Piano Section -->
+    <section class="content-section" id="section-piano">
+      <div class="container piano-section">
+        <h2>🎹 Virtual Piano</h2>
+        <p class="subtitle">Play with keyboard keys Z-M and A-O</p>
+        
+        <!-- Mode Switch -->
+        <div class="mode-switch">
+          <label class="switch-label">Mode:</label>
+          <div class="toggle-switch">
+            <input type="checkbox" id="actionToggle" checked>
+            <label for="actionToggle" class="toggle-label">
+              <span class="toggle-text off">Sound Only</span>
+              <span class="toggle-text on">+ Actions</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Virtual Piano - Responsive Single Row -->
+        <div class="piano-container">
+          <div class="piano-wrapper">
+            <!-- Unified Piano Keyboard -->
+            <div class="piano" id="piano">
+              <!-- C3 -->
+              <div class="piano-key white" data-note="C3" data-frequency="130.81" data-key="Z">
+                <span class="key-label">Z</span>
+                <span class="note-label">C3</span>
+              </div>
+              <div class="piano-key black" data-note="C#3" data-frequency="138.59" data-key="">
+                <span class="key-label"></span>
+              </div>
+              <!-- D3 -->
+              <div class="piano-key white" data-note="D3" data-frequency="146.83" data-key="X">
+                <span class="key-label">X</span>
+                <span class="note-label">D3</span>
+              </div>
+              <div class="piano-key black" data-note="D#3" data-frequency="155.56" data-key="">
+                <span class="key-label"></span>
+              </div>
+              <!-- E3 -->
+              <div class="piano-key white" data-note="E3" data-frequency="164.81" data-key="C">
+                <span class="key-label">C</span>
+                <span class="note-label">E3</span>
+              </div>
+              <!-- F3 -->
+              <div class="piano-key white" data-note="F3" data-frequency="174.61" data-key="V">
+                <span class="key-label">V</span>
+                <span class="note-label">F3</span>
+              </div>
+              <div class="piano-key black" data-note="F#3" data-frequency="185.00" data-key="">
+                <span class="key-label"></span>
+              </div>
+              <!-- G3 -->
+              <div class="piano-key white" data-note="G3" data-frequency="196.00" data-key="B">
+                <span class="key-label">B</span>
+                <span class="note-label">G3</span>
+              </div>
+              <div class="piano-key black" data-note="G#3" data-frequency="207.65" data-key="">
+                <span class="key-label"></span>
+              </div>
+              <!-- A3 -->
+              <div class="piano-key white" data-note="A3" data-frequency="220.00" data-key="N">
+                <span class="key-label">N</span>
+                <span class="note-label">A3</span>
+              </div>
+              <div class="piano-key black" data-note="A#3" data-frequency="233.08" data-key="">
+                <span class="key-label"></span>
+              </div>
+              <!-- B3 -->
+              <div class="piano-key white" data-note="B3" data-frequency="246.94" data-key="M">
+                <span class="key-label">M</span>
+                <span class="note-label">B3</span>
+              </div>
+              <!-- C4 -->
+              <div class="piano-key white" data-note="C4" data-frequency="261.63" data-key="A">
+                <span class="key-label">A</span>
+                <span class="note-label">C4</span>
+              </div>
+              <div class="piano-key black" data-note="C#4" data-frequency="277.18" data-key="W">
+                <span class="key-label">W</span>
+              </div>
+              <!-- D4 -->
+              <div class="piano-key white" data-note="D4" data-frequency="293.66" data-key="S">
+                <span class="key-label">S</span>
+                <span class="note-label">D4</span>
+              </div>
+              <div class="piano-key black" data-note="D#4" data-frequency="311.13" data-key="E">
+                <span class="key-label">E</span>
+              </div>
+              <!-- E4 -->
+              <div class="piano-key white" data-note="E4" data-frequency="329.63" data-key="D">
+                <span class="key-label">D</span>
+                <span class="note-label">E4</span>
+              </div>
+              <!-- F4 -->
+              <div class="piano-key white" data-note="F4" data-frequency="349.23" data-key="F">
+                <span class="key-label">F</span>
+                <span class="note-label">F4</span>
+              </div>
+              <div class="piano-key black" data-note="F#4" data-frequency="369.99" data-key="T">
+                <span class="key-label">T</span>
+              </div>
+              <!-- G4 -->
+              <div class="piano-key white" data-note="G4" data-frequency="392.00" data-key="G">
+                <span class="key-label">G</span>
+                <span class="note-label">G4</span>
+              </div>
+              <div class="piano-key black" data-note="G#4" data-frequency="415.30" data-key="Y">
+                <span class="key-label">Y</span>
+              </div>
+              <!-- A4 -->
+              <div class="piano-key white" data-note="A4" data-frequency="440.00" data-key="H">
+                <span class="key-label">H</span>
+                <span class="note-label">A4</span>
+              </div>
+              <div class="piano-key black" data-note="A#4" data-frequency="466.16" data-key="U">
+                <span class="key-label">U</span>
+              </div>
+              <!-- B4 -->
+              <div class="piano-key white" data-note="B4" data-frequency="493.88" data-key="J">
+                <span class="key-label">J</span>
+                <span class="note-label">B4</span>
+              </div>
+              <!-- C5 -->
+              <div class="piano-key white" data-note="C5" data-frequency="523.25" data-key="K">
+                <span class="key-label">K</span>
+                <span class="note-label">C5</span>
+              </div>
+              <div class="piano-key black" data-note="C#5" data-frequency="554.37" data-key="I">
+                <span class="key-label">I</span>
+              </div>
+              <!-- D5 -->
+              <div class="piano-key white" data-note="D5" data-frequency="587.33" data-key="L">
+                <span class="key-label">L</span>
+                <span class="note-label">D5</span>
+              </div>
+              <div class="piano-key black" data-note="D#5" data-frequency="622.25" data-key="O">
+                <span class="key-label">O</span>
+              </div>
+              <!-- E5 -->
+              <div class="piano-key white" data-note="E5" data-frequency="659.26" data-key="Semicolon">
+                <span class="key-label">;</span>
+                <span class="note-label">E5</span>
+              </div>
+              <!-- F5 -->
+              <div class="piano-key white" data-note="F5" data-frequency="698.46" data-key="Quote">
+                <span class="key-label">'</span>
+                <span class="note-label">F5</span>
+              </div>
+              <div class="piano-key black" data-note="F#5" data-frequency="739.99" data-key="P">
+                <span class="key-label">P</span>
+              </div>
+              <!-- G5 -->
+              <div class="piano-key white" data-note="G5" data-frequency="783.99" data-key="">
+                <span class="key-label"></span>
+                <span class="note-label">G5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="piano-controls">
+          <div class="volume-control">
+            <label>Volume</label>
+            <input type="range" id="volumeSlider" min="0" max="100" value="70">
+            <span id="volumeValue">70%</span>
+          </div>
+          <button class="control-btn" id="pianoReset">Stop</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- OTTO Control Section -->
+    <section class="content-section" id="section-otto-control">
+      <div class="container otto-control-section">
+        <h2>🤖 OTTO Robot Control</h2>
+        <p class="subtitle">Arduino UNO Q Powered Robot Dance & Movement</p>
+
+        <!-- Movement Controls -->
+        <div class="control-group">
+          <h3>Movement Controls</h3>
+          <div class="movement-pad">
+            <div class="movement-row">
+              <button class="move-btn" id="btn-walk-forward" title="Walk Forward">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                <span>Forward</span>
+              </button>
+            </div>
+            <div class="movement-row">
+              <button class="move-btn" id="btn-turn-left" title="Turn Left">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+                <span>Left</span>
+              </button>
+              <button class="move-btn" id="btn-walk-backward" title="Walk Backward">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 2L2 22h20L12 2z"/></svg>
+                <span>Back</span>
+              </button>
+              <button class="move-btn" id="btn-turn-right" title="Turn Right">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                <span>Right</span>
+              </button>
+            </div>
+          </div>
+          <div class="speed-control">
+            <label>Speed</label>
+            <input type="range" id="speedSlider" min="600" max="1400" value="1000">
+            <span id="speedValue">1000ms</span>
+          </div>
+        </div>
+
+        <!-- Dance Actions Grid -->
+        <div class="control-group">
+          <h3>� Dance Actions</h3>
+          <div class="action-grid">
+            <button class="action-btn" data-action="home">
+              <span class="btn-icon">🏠</span>
+              <span class="btn-label">Home</span>
+            </button>
+            <button class="action-btn" data-action="walk">
+              <span class="btn-icon">🚶</span>
+              <span class="btn-label">Walk</span>
+            </button>
+            <button class="action-btn" data-action="turn">
+              <span class="btn-icon">🔄</span>
+              <span class="btn-label">Turn</span>
+            </button>
+            <button class="action-btn" data-action="bend">
+              <span class="btn-icon">🤸</span>
+              <span class="btn-label">Bend</span>
+            </button>
+            <button class="action-btn" data-action="shakeLeg">
+              <span class="btn-icon">🦵</span>
+              <span class="btn-label">Shake Leg</span>
+            </button>
+            <button class="action-btn" data-action="updown">
+              <span class="btn-icon">⬆️</span>
+              <span class="btn-label">Up Down</span>
+            </button>
+            <button class="action-btn" data-action="swing">
+              <span class="btn-icon">💃</span>
+              <span class="btn-label">Swing</span>
+            </button>
+            <button class="action-btn" data-action="tiptoeSwing">
+              <span class="btn-icon">🩰</span>
+              <span class="btn-label">Tiptoe</span>
+            </button>
+            <button class="action-btn" data-action="jitter">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-label">Jitter</span>
+            </button>
+            <button class="action-btn" data-action="ascendingTurn">
+              <span class="btn-icon">🌀</span>
+              <span class="btn-label">Spin Up</span>
+            </button>
+            <button class="action-btn" data-action="moonwalker">
+              <span class="btn-icon">👟</span>
+              <span class="btn-label">Moonwalk</span>
+            </button>
+            <button class="action-btn" data-action="crusaito">
+              <span class="btn-icon">🛝</span>
+              <span class="btn-label">Glide</span>
+            </button>
+            <button class="action-btn" data-action="flapping">
+              <span class="btn-icon">🦋</span>
+              <span class="btn-label">Flap</span>
+            </button>
+            <button class="action-btn" data-action="jump">
+              <span class="btn-icon">🦘</span>
+              <span class="btn-label">Jump</span>
+            </button>
+            <button class="action-btn stop" data-action="stop">
+              <span class="btn-icon">🛑</span>
+              <span class="btn-label">Stop</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Music Player with CD Visualizer -->
+        <div class="control-group">
+          <h3>🎵 Music Player</h3>
+          <div class="music-player-container">
+            <!-- CD Visualizer -->
+            <div class="cd-player" id="cdPlayer">
+              <div class="cd-disc" id="cdDisc">
+                <div class="cd-label">
+                  <span class="cd-text">OTTO</span>
+                </div>
+              </div>
+              <div class="cd-shadow"></div>
+            </div>
+            
+            <!-- Song Info -->
+            <div class="song-info" id="songInfo">
+              <div class="song-title" id="songTitle">Select a song</div>
+              <div class="song-artist" id="songArtist">-</div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+              <span class="time-current" id="currentTime">0:00</span>
+              <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-handle" id="progressHandle"></div>
+              </div>
+              <span class="time-total" id="totalTime">0:00</span>
+            </div>
+            
+            <!-- Controls -->
+            <div class="music-controls">
+              <button class="control-btn" id="btnPrev">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+              </button>
+              <button class="control-btn play-btn" id="btnPlayPause">
+                <svg viewBox="0 0 24 24" width="32" height="32" id="playIcon"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+                <svg viewBox="0 0 24 24" width="32" height="32" id="pauseIcon" style="display:none"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button class="control-btn" id="btnNext">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+              </button>
+            </div>
+            
+            <!-- Song Select -->
+            <div class="music-select-row">
+              <select id="musicSelect">
+                <option value="">Select Song...</option>
+                <option value="huanlesong.txt" data-title="欢乐颂">欢乐颂</option>
+                <option value="liangzhilaohu.txt" data-title="两只老虎">两只老虎</option>
+                <option value="xiaotuzi.txt" data-title="小兔子乖乖">小兔子乖乖</option>
+                <option value="xiaoxinxin.txt" data-title="小心心">小心心</option>
+              </select>
+              <div class="music-dance-toggle">
+                <label class="switch-label">Dance:</label>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="danceToggle" checked>
+                  <label for="danceToggle" class="toggle-label">
+                    <span class="toggle-text off">OFF</span>
+                    <span class="toggle-text on">ON</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preset Dances -->
+        <div class="control-group">
+          <h3>🎭 Preset Dances</h3>
+          <div class="preset-grid">
+            <button class="preset-btn" data-preset="happy">
+              <span class="preset-icon">😊</span>
+              <span class="preset-name">Happy</span>
+            </button>
+            <button class="preset-btn" data-preset="dance">
+              <span class="preset-icon">💃</span>
+              <span class="preset-name">Dance</span>
+            </button>
+            <button class="preset-btn" data-preset="greeting">
+              <span class="preset-icon">👋</span>
+              <span class="preset-name">Greeting</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="libs/socket.io.min.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

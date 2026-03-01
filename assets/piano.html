@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟电子琴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1 {
+            color: #e94560;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+            font-size: 2.5rem;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls label {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-right: 10px;
+        }
+
+        .controls select {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #e94560, #c73e54);
+            color: white;
+            cursor: pointer;
+            outline: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .controls select:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        .piano-container {
+            background: linear-gradient(180deg, #2d2d2d 0%, #1a1a1a 100%);
+            padding: 30px 40px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                        inset 0 2px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .piano {
+            display: flex;
+            position: relative;
+        }
+
+        .key {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.08s ease;
+        }
+
+        .white-key {
+            width: 50px;
+            height: 200px;
+            background: linear-gradient(180deg, #fff 0%, #f0f0f0 90%, #d4d4d4 100%);
+            border: 1px solid #ccc;
+            border-radius: 0 0 8px 8px;
+            margin-right: 2px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3),
+                        inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .white-key:hover {
+            background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%);
+        }
+
+        .white-key.active {
+            background: linear-gradient(180deg, #e0e0e0 0%, #d0d0d0 100%);
+            transform: translateY(3px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .white-key .key-label {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .black-key {
+            width: 35px;
+            height: 120px;
+            background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
+            border-radius: 0 0 5px 5px;
+            position: absolute;
+            z-index: 2;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5),
+                        inset 0 -3px 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .black-key:hover {
+            background: linear-gradient(180deg, #4a4a4a 0%, #2a2a2a 100%);
+        }
+
+        .black-key.active {
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            transform: translateY(3px);
+            height: 117px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .black-key .key-label {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #aaa;
+            font-weight: bold;
+        }
+
+        .instructions {
+            margin-top: 30px;
+            color: #888;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        .instructions p {
+            margin-bottom: 5px;
+        }
+
+        .keyboard-hints {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .hint-key {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .volume-control label {
+            color: #fff;
+        }
+
+        .volume-control input[type="range"] {
+            width: 150px;
+            cursor: pointer;
+        }
+
+        .current-instrument {
+            color: #e94560;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>模拟电子琴</h1>
+    
+    <div class="controls">
+        <label for="instrument">选择乐器:</label>
+        <select id="instrument">
+            <option value="piano">钢琴 (Piano)</option>
+            <option value="organ">风琴 (Organ)</option>
+            <option value="guitar">吉他 (Guitar)</option>
+            <option value="violin">小提琴 (Violin)</option>
+            <option value="flute">长笛 (Flute)</option>
+            <option value="trumpet">小号 (Trumpet)</option>
+            <option value="saxophone">萨克斯 (Saxophone)</option>
+            <option value="synth">合成器 (Synth)</option>
+            <option value="bass">贝斯 (Bass)</option>
+        </select>
+        <div class="volume-control">
+            <label for="volume">音量:</label>
+            <input type="range" id="volume" min="0" max="100" value="50">
+            <span id="volume-value">50%</span>
+        </div>
+    </div>
+
+    <div class="piano-container">
+        <div class="piano" id="piano"></div>
+    </div>
+
+    <div class="instructions">
+        <p>使用鼠标点击琴键或使用键盘弹奏</p>
+        <p>键盘映射:</p>
+        <div class="keyboard-hints">
+            <span class="hint-key">A-白键C4</span>
+            <span class="hint-key">W-黑键C#4</span>
+            <span class="hint-key">S-白键D4</span>
+            <span class="hint-key">E-黑键D#4</span>
+            <span class="hint-key">D-白键E4</span>
+            <span class="hint-key">...</span>
+        </div>
+    </div>
+
+    <script>
+        // 音频上下文
+        let audioContext = null;
+        let masterGain = null;
+
+        // 初始化音频上下文
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioContext.createGain();
+                masterGain.connect(audioContext.destination);
+                masterGain.gain.value = 0.5;
+            }
+        }
+
+        // 音符频率映射
+        const noteFrequencies = {
+            'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13,
+            'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.00,
+            'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+            'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25,
+            'E5': 659.25, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99,
+            'G#5': 830.61, 'A5': 880.00, 'A#5': 932.33, 'B5': 987.77,
+            'C6': 1046.50
+        };
+
+        // 琴键配置
+        const keys = [
+            { note: 'C4', type: 'white', keyboard: 'a' },
+            { note: 'C#4', type: 'black', keyboard: 'w', offset: 35 },
+            { note: 'D4', type: 'white', keyboard: 's' },
+            { note: 'D#4', type: 'black', keyboard: 'e', offset: 87 },
+            { note: 'E4', type: 'white', keyboard: 'd' },
+            { note: 'F4', type: 'white', keyboard: 'f' },
+            { note: 'F#4', type: 'black', keyboard: 't', offset: 191 },
+            { note: 'G4', type: 'white', keyboard: 'g' },
+            { note: 'G#4', type: 'black', keyboard: 'y', offset: 243 },
+            { note: 'A4', type: 'white', keyboard: 'h' },
+            { note: 'A#4', type: 'black', keyboard: 'u', offset: 295 },
+            { note: 'B4', type: 'white', keyboard: 'j' },
+            { note: 'C5', type: 'white', keyboard: 'k' },
+            { note: 'C#5', type: 'black', keyboard: 'o', offset: 399 },
+            { note: 'D5', type: 'white', keyboard: 'l' },
+            { note: 'D#5', type: 'black', keyboard: 'p', offset: 451 },
+            { note: 'E5', type: 'white', keyboard: ';' },
+        ];
+
+        // 创建琴键
+        function createPiano() {
+            const piano = document.getElementById('piano');
+            piano.innerHTML = '';
+
+            keys.forEach(key => {
+                const keyElement = document.createElement('div');
+                keyElement.className = `key ${key.type}-key`;
+                keyElement.dataset.note = key.note;
+                keyElement.dataset.keyboard = key.keyboard;
+
+                const label = document.createElement('span');
+                label.className = 'key-label';
+                label.textContent = key.keyboard.toUpperCase();
+                keyElement.appendChild(label);
+
+                if (key.type === 'black') {
+                    keyElement.style.left = key.offset + 'px';
+                }
+
+                // 鼠标事件
+                keyElement.addEventListener('mousedown', () => {
+                    playNote(key.note);
+                    keyElement.classList.add('active');
+                });
+
+                keyElement.addEventListener('mouseup', () => {
+                    keyElement.classList.remove('active');
+                });
+
+                keyElement.addEventListener('mouseleave', () => {
+                    keyElement.classList.remove('active');
+                });
+
+                piano.appendChild(keyElement);
+            });
+        }
+
+        // 乐器合成器配置
+        const instrumentConfigs = {
+            piano: {
+                type: 'triangle',
+                attack: 0.02,
+                decay: 0.3,
+                sustain: 0.4,
+                release: 0.5,
+                harmonics: [1, 0.5, 0.25, 0.125]
+            },
+            organ: {
+                type: 'sine',
+                attack: 0.1,
+                decay: 0.1,
+                sustain: 0.8,
+                release: 0.3,
+                harmonics: [1, 0.8, 0.6, 0.4, 0.3, 0.2]
+            },
+            guitar: {
+                type: 'sawtooth',
+                attack: 0.01,
+                decay: 0.4,
+                sustain: 0.2,
+                release: 0.4,
+                harmonics: [1, 0.6, 0.3, 0.15],
+                filter: { type: 'lowpass', frequency: 3000 }
+            },
+            violin: {
+                type: 'sawtooth',
+                attack: 0.15,
+                decay: 0.2,
+                sustain: 0.7,
+                release: 0.3,
+                harmonics: [1, 0.7, 0.5, 0.3],
+                vibrato: { rate: 5, depth: 5 }
+            },
+            flute: {
+                type: 'sine',
+                attack: 0.1,
+                decay: 0.1,
+                sustain: 0.6,
+                release: 0.2,
+                harmonics: [1, 0.3, 0.1],
+                vibrato: { rate: 4, depth: 3 }
+            },
+            trumpet: {
+                type: 'square',
+                attack: 0.05,
+                decay: 0.2,
+                sustain: 0.6,
+                release: 0.3,
+                harmonics: [1, 0.8, 0.5, 0.3],
+                filter: { type: 'lowpass', frequency: 2000 }
+            },
+            saxophone: {
+                type: 'sawtooth',
+                attack: 0.08,
+                decay: 0.2,
+                sustain: 0.5,
+                release: 0.3,
+                harmonics: [1, 0.7, 0.4, 0.2],
+                filter: { type: 'lowpass', frequency: 2500 },
+                vibrato: { rate: 5, depth: 4 }
+            },
+            synth: {
+                type: 'square',
+                attack: 0.01,
+                decay: 0.1,
+                sustain: 0.5,
+                release: 0.5,
+                harmonics: [1, 0.5, 0.25],
+                filter: { type: 'lowpass', frequency: 4000 }
+            },
+            bass: {
+                type: 'sawtooth',
+                attack: 0.02,
+                decay: 0.3,
+                sustain: 0.4,
+                release: 0.3,
+                harmonics: [1, 0.8, 0.4],
+                filter: { type: 'lowpass', frequency: 800 },
+                octaveShift: -1
+            }
+        };
+
+        // 播放音符
+        function playNote(note) {
+            initAudio();
+            
+            const instrument = document.getElementById('instrument').value;
+            const config = instrumentConfigs[instrument];
+            let frequency = noteFrequencies[note];
+            
+            if (!frequency) return;
+
+            // 八度偏移
+            if (config.octaveShift) {
+                frequency *= Math.pow(2, config.octaveShift);
+            }
+
+            const now = audioContext.currentTime;
+            const duration = config.attack + config.decay + 0.5;
+
+            // 创建增益节点用于ADSR包络
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.8, now + config.attack);
+            gainNode.gain.linearRampToValueAtTime(config.sustain * 0.8, now + config.attack + config.decay);
+            gainNode.gain.linearRampToValueAtTime(0, now + duration);
+
+            // 连接滤波器（如果配置了）
+            let lastNode = gainNode;
+            if (config.filter) {
+                const filter = audioContext.createBiquadFilter();
+                filter.type = config.filter.type;
+                filter.frequency.value = config.filter.frequency;
+                gainNode.connect(filter);
+                lastNode = filter;
+            }
+
+            lastNode.connect(masterGain);
+
+            // 创建谐波振荡器
+            const oscillators = [];
+            config.harmonics.forEach((gain, index) => {
+                const osc = audioContext.createOscillator();
+                osc.type = config.type;
+                osc.frequency.setValueAtTime(frequency * (index + 1), now);
+
+                // 添加颤音
+                if (config.vibrato) {
+                    const vibrato = audioContext.createOscillator();
+                    const vibratoGain = audioContext.createGain();
+                    vibrato.frequency.value = config.vibrato.rate;
+                    vibratoGain.gain.value = config.vibrato.depth;
+                    vibrato.connect(vibratoGain);
+                    vibratoGain.connect(osc.frequency);
+                    vibrato.start(now);
+                    vibrato.stop(now + duration);
+                }
+
+                const oscGain = audioContext.createGain();
+                oscGain.gain.value = gain * 0.3;
+                osc.connect(oscGain);
+                oscGain.connect(gainNode);
+
+                osc.start(now);
+                osc.stop(now + duration);
+                oscillators.push(osc);
+            });
+        }
+
+        // 键盘映射
+        const keyboardMap = {};
+        keys.forEach(key => {
+            keyboardMap[key.keyboard.toLowerCase()] = key.note;
+        });
+
+        // 当前按下的键
+        const pressedKeys = new Set();
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            if (pressedKeys.has(e.key.toLowerCase())) return;
+            
+            const note = keyboardMap[e.key.toLowerCase()];
+            if (note) {
+                pressedKeys.add(e.key.toLowerCase());
+                playNote(note);
+                const keyElement = document.querySelector(`[data-keyboard="${e.key.toLowerCase()}"]`);
+                if (keyElement) {
+                    keyElement.classList.add('active');
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            pressedKeys.delete(e.key.toLowerCase());
+            const keyElement = document.querySelector(`[data-keyboard="${e.key.toLowerCase()}"]`);
+            if (keyElement) {
+                keyElement.classList.remove('active');
+            }
+        });
+
+        // 音量控制
+        document.getElementById('volume').addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('volume-value').textContent = value + '%';
+            if (masterGain) {
+                masterGain.gain.value = value / 100;
+            }
+        });
+
+        // 初始化
+        createPiano();
+
+        // 点击页面任意位置初始化音频上下文（某些浏览器需要用户交互）
+        document.addEventListener('click', initAudio, { once: true });
+    </script>
+</body>
+</html>

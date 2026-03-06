@@ -1,5 +1,341 @@
 # OttoControlWebVoice
 
+A biped robot control system based on the Arduino UNO Q development board, supporting web interface control, voice commands, music-synchronized dance, and other features.
+
+## Project Overview
+
+This project implements a fully functional control system for the Otto robot, featuring:
+
+- **Web Interface Control**: Real-time control of robot movements via a web browser
+- **Voice Commands**: Support for voice-controlled execution of preset robot actions
+- **Music Synchronization**: The robot can dance in sync with music beats
+- **Rich Action Library**: Includes various movements such as walking, turning, jumping, moonwalking, etc.
+- **Custom Action Sequences**: Support for creating and executing custom dance sequences
+
+## Hardware Components
+
+| Component         | Quantity | Model                       | Purpose                                                      |
+| ----------------- | -------- | --------------------------- | ------------------------------------------------------------ |
+| Servo Motor       | 4        | DS3115                      | Control robot leg movements (Left Hip, Right Hip, Left Ankle, Right Ankle) |
+| Expansion Board   | 1        | Custom                      | Connect battery power supply, expand servo IO ports, and handle other connections/power supply |
+| Development Board | 1        | Arduino UNO Q               | Core controller running the robot control code               |
+| USB Cable         | 1        | USB-C® to USB-A             | Connect the development board to a computer                  |
+| Ultrasonic Sensor | 1        | HC-SR04                     | Obstacle detection (optional)                                |
+| Battery           | 1        | 12V 2800mAh Lithium Battery | Power supply for the robot                                   |
+| C-to-C Data Cable | 1        | Custom                      | Connect the expansion board to the development board         |
+| Enclosure         | 1        | Custom                      | Complete 3D-printed parts based on the OTTO model [top cover, bottom cover, switch, battery cover, left hip, right hip, left ankle, right ankle] |
+| Screws            | *        | Custom                      | For assembling all robot parts                               |
+
+## Software Requirements
+
+- Arduino App Lab
+- Python 3.13+
+- Modern web browser (Chrome, Firefox, Edge, etc.)
+
+## Core Algorithms
+
+### 1. Principle of Center of Gravity Transfer for Biped Robots
+
+The Otto robot adopts a 4-servo structure to achieve biped walking, with the core principle of stable movement through **center of gravity transfer**:
+
+- **Hip Joint Control**: Alternating swing of the left and right hip joints (YL, YR) to achieve forward/backward leg movement
+- **Ankle Joint Control**: Up/down movement of the left and right ankle joints (RL, RR) to adjust the robot's center of gravity
+- **Phase Coordination**: There is a phase difference between hip and ankle joint movements to ensure the center of gravity remains above the supporting leg during walking
+
+**Key Algorithm**: Implemented via the `_execute_oscillation` method in `otto_core.py`, using sine waves to control servo motion trajectories.
+
+### 2. Oscillator Algorithm for Generating Smooth Dance Motion Curves
+
+The project uses a **sine oscillator** to generate smooth periodic movements, ensuring natural and fluid actions:
+
+```python
+class Oscillator:
+    """
+    Sine Oscillator Class
+    Used to generate smooth periodic movements
+    
+    Parameter Description:
+    - A: Amplitude (degrees)
+    - O: Offset (degrees)
+    - T: Period (milliseconds)
+    - phase: Phase (radians)
+    """
+    
+    def refresh(self, current_time: float = None) -> float:
+        """
+        Refresh oscillator state and return current position
+        Simulates real-time sampling
+        """
+        if current_time is None:
+            current_time = time.time() * 1000
+        
+        pos = self._A * math.sin(self._phase + self._phase0) + self._O
+        
+        if self._rev:
+            pos = -pos
+        
+        self._pos = round(pos) + 90 + self._trim
+        self._pos = max(0, min(180, self._pos))  # Limit to 0-180 degree range
+        
+        self._phase += self._inc
+        return self._pos
+```
+
+**Working Principle**:
+
+- Uses sine functions to generate smooth periodic motion trajectories
+- Achieves different types of movements by adjusting amplitude, offset, and phase difference
+- Adopts a fixed sampling rate (30ms) to ensure motion fluidity
+
+### 3. In-depth Analysis of Otto Library Files
+
+#### Core Function Modules
+
+1. **Basic Movements**: Walking, turning, homing, and other basic motions
+2. **Dance Movements**: Complex movements such as swinging, jittering, moonwalking
+3. **Action Sequences**: Support for combining multiple actions to form dances
+4. **Servo Control**: Precise control of the angles of the four servos
+
+#### Custom Action Sequences
+
+Custom action sequences can be created using the `create_action_sequence` function:
+
+```python
+def create_action_sequence(actions: List[Dict]) -> List[Tuple[ServoAngles, int]]:
+    """
+    Create action sequence
+    
+    Parameters:
+    - actions: List of action dictionaries, each containing:
+        - action: Action name
+        - steps: Number of steps (optional)
+        - T: Period (optional)
+        - direction: Direction (optional)
+        - height: Height (optional)
+    
+    Returns:
+    - List of (action frame, duration) tuples
+    """
+    otto = OttoCore()
+    sequence = []
+    
+    for action_dict in actions:
+        action_name = action_dict.get('action', 'home')
+        frames = otto.get_action_frames(action_name, **action_dict)
+        duration = action_dict.get('T', 1000) * action_dict.get('steps', 1)
+        sequence.append((frames, duration))
+    
+    return sequence
+```
+
+**Usage Example**:
+
+```python
+# Custom dance sequence
+custom_sequence = [
+    {'action': 'walk', 'steps': 2, 'T': 1000, 'direction': 1},
+    {'action': 'swing', 'steps': 3, 'T': 800, 'height': 25},
+    {'action': 'moonwalker', 'steps': 2, 'T': 900, 'height': 25, 'direction': 1},
+    {'action': 'jump', 'steps': 1, 'T': 1500}
+]
+
+# Create and execute sequence
+frames = create_action_sequence(custom_sequence)
+```
+
+### 4. Web Page Note Frequency Output and Action Beat Synchronization Code
+
+The project supports music and action synchronization, implemented through the following mechanisms:
+
+#### Music Analysis and Beat Detection
+
+In `assets/app.js`, music files are loaded and beats are detected via the `loadMusicFile` function:
+
+```javascript
+function loadMusicFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContext.decodeAudioData(e.target.result, function(buffer) {
+            analyzeMusic(buffer);
+        });
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function analyzeMusic(audioBuffer) {
+    // Extract audio features
+    // Detect beat points
+    // Generate action trigger times
+}
+```
+
+#### Action and Music Synchronization
+
+Synchronization of actions with music beats is achieved through the `syncActionWithMusic` function:
+
+```javascript
+function syncActionWithMusic(actionName, beatTimes) {
+    beatTimes.forEach((beatTime, index) => {
+        setTimeout(() => {
+            executeAction(actionName);
+        }, beatTime * 1000);
+    });
+}
+```
+
+#### Note Frequency Output
+
+The web interface can display the frequency of the currently playing note and trigger different actions based on frequency changes:
+
+```javascript
+function updateNoteFrequency(frequency) {
+    document.getElementById('note-frequency').textContent = `Current Frequency: ${Math.round(frequency)}Hz`;
+    
+    // Select action based on frequency range
+    if (frequency > 800) {
+        // High frequency: fast actions
+        executeAction('jitter', { steps: 1, T: 400, height: 15 });
+    } else if (frequency > 400) {
+        // Medium frequency: medium speed actions
+        executeAction('swing', { steps: 1, T: 800, height: 20 });
+    } else {
+        // Low frequency: slow actions
+        executeAction('updown', { steps: 1, T: 1200, height: 15 });
+    }
+}
+```
+
+## Project Structure
+
+```
+OttoControlWebVoice/
+├── assets/            # Frontend resources
+│   ├── index.html     # Main page
+│   ├── app.js         # Frontend logic
+│   ├── style.css      # Style sheet
+│   ├── music/         # Music files
+│   └── img/           # Image resources
+├── python/            # Python backend
+│   ├── main.py        # Main program
+│   ├── otto_core.py   # Core algorithms
+│   └── otto_controller.py # Controller
+├── sketch/            # Arduino code
+│   └── sketch.ino     # Main sketch
+├── app.yaml           # Application configuration
+├── OTTO_ACTIONS.md    # Action documentation
+└── README.md          # Project description
+```
+
+## Quick Start
+
+### 1. Hardware Connection
+
+1. Connect the 4 DS3115 servo motors to the Arduino UNO Q development board:
+   - Left Hip (YL) → D3
+   - Right Hip (YR) → D5
+   - Left Ankle (RL) → D6
+   - Right Ankle (RR) → D9
+
+2. Connect the USB cable to the development board and computer
+
+### 2. Software Setup
+
+1. Open Arduino App Lab
+2. Load the project folder `OttoControlWebVoice`
+3. Compile and upload the Arduino sketch to the development board
+4. Click the Run button to start the program:
+
+### 3. Access the Control Interface
+
+1. Open a web browser and visit `http://localhost:8000`
+2. Click the "Connect" button to connect to the robot
+3. Use the "Quick Actions" buttons to test basic movements
+4. Test the music synchronization feature with built-in music files
+
+## Action List
+
+| Action Name   | Description          | Parameters                  |
+| ------------- | -------------------- | --------------------------- |
+| walk          | Walking              | steps, T, direction         |
+| turn          | Turning              | steps, T, direction         |
+| bend          | Side bending         | steps, T, direction         |
+| shakeLeg      | Leg shaking          | steps, T, direction         |
+| updown        | Up and down movement | steps, T, height            |
+| swing         | Swinging             | steps, T, height            |
+| tiptoeSwing   | Tiptoe swinging      | steps, T, height            |
+| jitter        | Jittering            | steps, T, height            |
+| ascendingTurn | Ascending rotation   | steps, T, height            |
+| moonwalker    | Moonwalking          | steps, T, height, direction |
+| crusaito      | Gliding              | steps, T, height, direction |
+| flapping      | Flapping             | steps, T, height, direction |
+| jump          | Jumping              | steps, T                    |
+| home          | Homing               | None                        |
+
+## Preset Dances
+
+### happy - Happy Dance
+
+- Swing → Forward → Backward → Tiptoe Swing → Home
+
+### dance - Dance
+
+- Left Slide → Right Slide → Left Glide → Right Glide → Flap → Home
+
+### greeting - Greeting
+
+- Swing → Left Bend → Right Bend → Forward → Home
+
+## Technical Details
+
+### Communication Protocol
+
+- **Frontend → Backend**: WebSocket (Socket.IO) real-time communication
+- **Backend → Hardware**: Sending servo control commands via Arduino_RouterBridge
+
+### Security Features
+
+- Automatic servo angle limitation to the 0-180 degree range
+- Action parameter range checking to prevent excessive movement
+- Thread-safe design to avoid action conflicts
+
+### Performance Optimization
+
+- Pre-calculation of action frames to reduce real-time computation load
+- Fixed sampling rate to ensure motion fluidity
+- No command sent when servo angle change is less than 2 degrees to reduce communication traffic
+
+## Extended Features
+
+### Voice Control
+
+The project supports voice control via the Web Speech API:
+
+1. Click the "Voice Control" button
+2. Speak preset commands such as "Walk", "Jump", "Stop"
+3. The robot will execute the corresponding action
+
+### Custom Music Dance
+
+1. Upload a music file (MP3 format supported)
+2. Click the "Analyze Music" button to detect beats
+3. Select an action mapping scheme
+4. Click the "Start Synchronization" button to start the music dance
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Servos unresponsive**: Check wiring connections and ensure sufficient power supply
+2. **Uncoordinated movements**: May require calibrating servo neutral positions
+3. **Web interface unresponsive**: Check if the Python backend is running and the network connection is normal
+4. **Music asynchronization**: Try using music with distinct beats and ensure moderate volume
+
+---
+
+**Enjoy controlling your Otto robot!** 🤖🎵
+# OttoControlWebVoice
+
 一个基于 Arduino UNO Q 开发板的双足机器人控制系统，支持Web界面控制、语音指令、音乐同步舞蹈等功能。
 
 ## 项目概述
